@@ -1,6 +1,5 @@
 ﻿using SongBrowserPlugin.DataAccess.BeatSaverApi;
 using SongBrowserPlugin.UI;
-using SongLoaderPlugin;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -9,6 +8,7 @@ using System.IO.Compression;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using SongBrowserPlugin.DataAccess;
 using TMPro;
 using UnityEngine;
 using UnityEngine.Networking;
@@ -139,7 +139,7 @@ namespace SongBrowserPlugin
                     docPath = Application.dataPath;
                     docPath = docPath.Substring(0, docPath.Length - 5);
                     docPath = docPath.Substring(0, docPath.LastIndexOf("/"));
-                    customSongsPath = docPath + "/CustomSongs/" + songInfo.id + "/";
+                    customSongsPath = docPath + "/Beat Saber_Data/CustomLevels/" + songInfo.id + "/";
                     zipPath = customSongsPath + songInfo.id + ".zip";
                     if (!Directory.Exists(customSongsPath))
                     {

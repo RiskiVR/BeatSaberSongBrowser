@@ -36,7 +36,7 @@ namespace SongBrowserPlugin.DataAccess
             using (var www = new WWW(audioPath))
             {
                 yield return www;
-                SongLoaderPlugin.ReflectionUtil.SetPrivateField(obj, fieldName, www.GetAudioClip(true, true, AudioType.UNKNOWN));
+                obj.SetPrivateField(fieldName, www.GetAudioClip(true, true, AudioType.UNKNOWN));
             }
         }
     }

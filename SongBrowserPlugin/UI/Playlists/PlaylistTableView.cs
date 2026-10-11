@@ -1,6 +1,5 @@
 ﻿using HMUI;
 using SongBrowserPlugin.DataAccess;
-using SongLoaderPlugin;
 using System;
 using System.Collections.Generic;
 using System.Linq;

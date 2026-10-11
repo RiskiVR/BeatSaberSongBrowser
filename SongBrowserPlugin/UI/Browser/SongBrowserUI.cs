@@ -8,10 +8,11 @@ using HMUI;
 using VRUI;
 using SongBrowserPlugin.DataAccess;
 using System.IO;
-using SongLoaderPlugin;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.RegularExpressions;
+using LegacyCore;
+using LegacyCore.Custom;
 using TMPro;
 namespace SongBrowserPlugin.UI
 {
@@ -148,7 +149,7 @@ namespace SongBrowserPlugin.UI
 
                 _levelListViewController.didSelectLevelEvent += OnDidSelectLevelEvent;
 
-                TableView tableView = ReflectionUtil.GetPrivateField<TableView>(_levelListTableView, "_tableView");
+                TableView tableView = _levelListTableView.GetPrivateField<TableView>("_tableView");
                 tableView.didSelectRowEvent += HandleDidSelectTableViewRow;
 
                 _levelDifficultyViewController.didSelectDifficultyEvent += OnDidSelectDifficultyEvent;
@@ -557,7 +558,7 @@ namespace SongBrowserPlugin.UI
                 return;
             }
 
-            SongLoaderPlugin.OverrideClasses.CustomLevel customLevel = _model.LevelIdToCustomSongInfos[level.levelID];
+            CustomLevelSO customLevel = _model.LevelIdToCustomSongInfos[level.levelID];
 
             this._deleteDialog.Init("Delete level warning!", String.Format("<color=#00AAFF>Permanently delete level: {0}</color>\n  Do you want to continue?", customLevel.songName), "YES", "NO");
             this._deleteDialog.didFinishEvent += this.HandleDeleteDialogPromptViewControllerDidFinish;
@@ -579,10 +580,10 @@ namespace SongBrowserPlugin.UI
             }
             else
             {
-                string customSongsPath = Path.Combine(Environment.CurrentDirectory, "CustomSongs");
+                string customSongsPath = Path.Combine(Environment.CurrentDirectory, "Beat Saber_Data/CustomLevels");
                 IStandardLevel level = this._levelListViewController.selectedLevel;                
-                SongLoaderPlugin.OverrideClasses.CustomLevel customLevel = _model.LevelIdToCustomSongInfos[level.levelID];
-                string songPath = customLevel.customSongInfo.path;
+                CustomLevelSO customLevel = _model.LevelIdToCustomSongInfos[level.levelID];
+                string songPath = customLevel.levelInfo.levelPath;
                 bool isZippedSong = false;
 
                 viewController.DismissModalViewController(null, false);
@@ -651,7 +652,7 @@ namespace SongBrowserPlugin.UI
                     _model.LastSelectedLevelId = null;
                 }
 
-                SongLoaderPlugin.SongLoader.Instance.RemoveSongWithPath(songPath);
+                Loader.instance.ReloadLevels(false);
                 this.UpdateSongList();
                 this.RefreshSongList();
             }
@@ -769,7 +770,7 @@ namespace SongBrowserPlugin.UI
                 segmentSize = LIST_ITEMS_VISIBLE_AT_ONCE;
             }
 
-            TableView tableView = ReflectionUtil.GetPrivateField<TableView>(_levelListTableView, "_tableView");
+            TableView tableView = _levelListTableView.GetPrivateField<TableView>("_tableView");
             int jumpDirection = Math.Sign(numJumps);
             int newRow = _lastRow + (jumpDirection * segmentSize);
             
@@ -871,13 +872,14 @@ namespace SongBrowserPlugin.UI
                 }
                 else
                 {//Grab njs from custom level
-                    SongLoaderPlugin.OverrideClasses.CustomLevel customLevel = _model.LevelIdToCustomSongInfos[level.levelID];
-                    foreach (var diffLevel in customLevel.customSongInfo.difficultyLevels)
+                    CustomLevelSO customLevel = _model.LevelIdToCustomSongInfos[level.levelID];
+                    foreach (var diffLevel in customLevel.difficultyBeatmaps)
                     {
 
-                        if (diffLevel.difficulty == difficultyString)
+                        if (diffLevel.difficulty.ToString() == difficultyString)
                         {
-                            GetNoteJump(diffLevel.json, out njs);
+                            //GetNoteJump(diffLevel.json, out njs);
+                            njs = diffLevel.noteJumpMovementSpeed;
                         }
                     }
                     //Show note jump speedS
@@ -1056,9 +1058,9 @@ namespace SongBrowserPlugin.UI
 
                 StandardLevelSO[] levels = _model.SortedSongList.ToArray();
                 StandardLevelListViewController songListViewController = this._levelSelectionFlowCoordinator.GetPrivateField<StandardLevelListViewController>("_levelListViewController");
-                ReflectionUtil.SetPrivateField(_levelListTableView, "_levels", levels);
-                ReflectionUtil.SetPrivateField(songListViewController, "_levels", levels);            
-                TableView tableView = ReflectionUtil.GetPrivateField<TableView>(_levelListTableView, "_tableView");
+                _levelListTableView.SetPrivateField("_levels", levels);
+                songListViewController.SetPrivateField("_levels", levels);            
+                TableView tableView = _levelListTableView.GetPrivateField<TableView>("_tableView");
                 tableView.ReloadData();                
 
                 String selectedLevelID = null;

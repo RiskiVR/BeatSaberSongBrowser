@@ -2,13 +2,13 @@
 using SongBrowserPlugin.DataAccess;
 using SongBrowserPlugin.DataAccess.BeatSaverApi;
 using SongBrowserPlugin.UI.DownloadQueue;
-using SongLoaderPlugin;
 using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using LegacyCore;
 using UnityEngine;
 using UnityEngine.Networking;
 using VRUI;
@@ -169,7 +169,7 @@ namespace SongBrowserPlugin.UI
                 {
                     if (x.Level == null)
                     {
-                        x.Level = SongLoader.CustomLevels.FirstOrDefault(y => (y.customSongInfo.path.Contains(x.Key) && Directory.Exists(y.customSongInfo.path)) || (string.IsNullOrEmpty(x.LevelId) ? false : y.levelID.StartsWith(x.LevelId)));
+                        x.Level = Loader.customLevels.FirstOrDefault(y => (y.levelInfo.levelPath.Contains(x.Key) && Directory.Exists(y.levelInfo.levelPath)) || (string.IsNullOrEmpty(x.LevelId) ? false : y.levelID.StartsWith(x.LevelId)));
                     }
                 });
             }
@@ -182,7 +182,7 @@ namespace SongBrowserPlugin.UI
         /// <returns></returns>
         private int CountMissingSongs(Playlist playlist)
         {
-            return playlist.Songs.Count - playlist.Songs.Count(x => SongLoader.CustomLevels.Any(y => y.customSongInfo.path.Contains(x.Key)));
+            return playlist.Songs.Count - playlist.Songs.Count(x => Loader.customLevels.Any(y => y.levelInfo.levelPath.Contains(x.Key)));
         }
 
         /// <summary>
@@ -223,7 +223,7 @@ namespace SongBrowserPlugin.UI
                     _log.Debug("Obtaining hash and url for " + item.Key + ": " + item.SongName);
                     yield return GetSongByPlaylistSong(playlist, item);
 
-                    _log.Debug("Song is null: " + (_lastRequestedSong == null) + "\n Level is downloaded: " + (SongLoader.CustomLevels.Any(x => x.levelID.Substring(0, 32) == _lastRequestedSong.hash.ToUpper())));
+                    _log.Debug("Song is null: " + (_lastRequestedSong == null) + "\n Level is downloaded: " + (Loader.customLevels.Any(x => x.levelID.Substring(0, 32) == _lastRequestedSong.hash.ToUpper())));
                 }
                 else
                 {
@@ -241,7 +241,7 @@ namespace SongBrowserPlugin.UI
                     };
                 }
 
-                if (_lastRequestedSong != null && !SongLoader.CustomLevels.Any(x => x.levelID.Substring(0, 32) == _lastRequestedSong.hash.ToUpper()))
+                if (_lastRequestedSong != null && !Loader.customLevels.Any(x => x.levelID.Substring(0, 32) == _lastRequestedSong.hash.ToUpper()))
                 {
                     _log.Debug(item.Key + ": " + item.SongName + "  -  " + _lastRequestedSong.hash);
                     beatSaverSongs.Add(_lastRequestedSong);
@@ -273,7 +273,7 @@ namespace SongBrowserPlugin.UI
         /// </summary>
         private void AllSongsDownloaded()
         {
-            SongLoader.Instance.RefreshSongs(false);
+            Loader.instance.ReloadLevels(false);
 
             this.FilterSongsForPlaylist(this._playlistListViewController.SelectedPlaylist);
 

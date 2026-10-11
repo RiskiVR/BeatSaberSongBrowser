@@ -1,21 +1,21 @@
 ﻿using SongBrowserPlugin.DataAccess;
 using SongBrowserPlugin.DataAccess.FileSystem;
 using SongBrowserPlugin.UI;
-using SongLoaderPlugin;
-using SongLoaderPlugin.OverrideClasses;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
+using LegacyCore;
+using LegacyCore.Custom;
 using UnityEngine;
 
 namespace SongBrowserPlugin
 {
     public class SongBrowserModel
     {
-        private const String CUSTOM_SONGS_DIR = "CustomSongs";
+        private const String CUSTOM_SONGS_DIR = "Beat Saber_Data/CustomLevels";
 
         private readonly DateTime EPOCH = new DateTime(1970, 1, 1);
 
@@ -29,7 +29,7 @@ namespace SongBrowserPlugin
         private List<StandardLevelSO> _filteredSongs;
         private List<StandardLevelSO> _sortedSongs;
         private List<StandardLevelSO> _originalSongs;
-        private Dictionary<String, SongLoaderPlugin.OverrideClasses.CustomLevel> _levelIdToCustomLevel;
+        private Dictionary<String, CustomLevelSO> _levelIdToCustomLevel;
         private Dictionary<String, double> _cachedLastWriteTimes;
         private Dictionary<string, int> _weights;
         private Dictionary<LevelDifficulty, int> _difficultyWeights;
@@ -42,7 +42,7 @@ namespace SongBrowserPlugin
 
         private GameplayMode _currentGamePlayMode;
 
-        public static Action<List<CustomLevel>> didFinishProcessingSongs;
+        public static Action<List<CustomLevelSO>> didFinishProcessingSongs;
 
         /// <summary>
         /// Get the settings the model is using.
@@ -69,7 +69,7 @@ namespace SongBrowserPlugin
         /// <summary>
         /// Map LevelID to Custom Level info.  
         /// </summary>
-        public Dictionary<String, SongLoaderPlugin.OverrideClasses.CustomLevel> LevelIdToCustomSongInfos
+        public Dictionary<String, CustomLevelSO> LevelIdToCustomSongInfos
         {
             get
             {
@@ -167,7 +167,7 @@ namespace SongBrowserPlugin
         /// </summary>
         public SongBrowserModel()
         {
-            _levelIdToCustomLevel = new Dictionary<string, SongLoaderPlugin.OverrideClasses.CustomLevel>();
+            _levelIdToCustomLevel = new Dictionary<string, CustomLevelSO>();
             _cachedLastWriteTimes = new Dictionary<String, double>();
             _levelIdToScoreSaberData = new Dictionary<string, ScoreSaberData>();
             _levelIdToPlayCount = new Dictionary<string, int>();
@@ -243,7 +243,7 @@ namespace SongBrowserPlugin
 
             // Get the level collection from song loader
             LevelCollectionsForGameplayModes levelCollections = Resources.FindObjectsOfTypeAll<LevelCollectionsForGameplayModes>().FirstOrDefault();
-            List<LevelCollectionsForGameplayModes.LevelCollectionForGameplayMode> levelCollectionsForGameModes = ReflectionUtil.GetPrivateField<LevelCollectionsForGameplayModes.LevelCollectionForGameplayMode[]>(levelCollections, "_collections").ToList();
+            List<LevelCollectionsForGameplayModes.LevelCollectionForGameplayMode> levelCollectionsForGameModes = levelCollections.GetPrivateField<LevelCollectionsForGameplayModes.LevelCollectionForGameplayMode[]>("_collections").ToList();
 
             // Stash everything we need
             _originalSongs = levelCollections.GetLevels(gameplayMode).ToList();
@@ -267,14 +267,14 @@ namespace SongBrowserPlugin
             // Get LastWriteTimes   
             Stopwatch lastWriteTimer = new Stopwatch();
             lastWriteTimer.Start();
-            foreach (var level in SongLoader.CustomLevels)
+            foreach (var level in Loader.customLevels)
             {
                 // If we already know this levelID, don't both updating it.
                 // SongLoader should filter duplicates but in case of failure we don't want to crash
 
                 if (!_cachedLastWriteTimes.ContainsKey(level.levelID) || customSongDirChanged)
                 {
-                    _cachedLastWriteTimes[level.levelID] = (File.GetLastWriteTimeUtc(level.customSongInfo.path) - EPOCH).TotalMilliseconds;
+                    _cachedLastWriteTimes[level.levelID] = (File.GetLastWriteTimeUtc(level.levelInfo.levelPath) - EPOCH).TotalMilliseconds;
                 }
 
                 if (!_levelIdToCustomLevel.ContainsKey(level.levelID))
@@ -284,11 +284,11 @@ namespace SongBrowserPlugin
 
                 if (!_levelIdToSongVersion.ContainsKey(level.levelID))
                 {
-                    DirectoryInfo info = new DirectoryInfo(level.customSongInfo.path);
+                    DirectoryInfo info = new DirectoryInfo(level.levelInfo.levelPath);
                     string currentDirectoryName = info.Name;
 
-                    String version = level.customSongInfo.path.Replace(revSlashCustomSongPath, "").Replace(currentDirectoryName, "").Replace("/", "");
-                    if (!String.IsNullOrEmpty(version))
+                    String version = level.levelInfo.levelPath.Replace(revSlashCustomSongPath, "").Replace(currentDirectoryName, "").Replace("/", "");
+                    if (!String.IsNullOrEmpty(version) && !_keyToSong.ContainsKey(version))
                     {
                         //_log.Debug("MATCH");
                         _levelIdToSongVersion.Add(level.levelID, version);
@@ -343,9 +343,9 @@ namespace SongBrowserPlugin
             this.ProcessSongList();
 
             // Signal complete
-            if (SongLoader.CustomLevels.Count > 0)
+            if (Loader.customLevels.Count > 0)
             {
-                didFinishProcessingSongs?.Invoke(SongLoader.CustomLevels);
+                didFinishProcessingSongs?.Invoke(Loader.customLevels);
             }
 
             timer.Stop();
@@ -404,7 +404,7 @@ namespace SongBrowserPlugin
                 return;
             }
 
-            foreach (var level in SongLoader.CustomLevels)
+            foreach (var level in Loader.customLevels)
             {
                 // Skip
                 if (_levelIdToScoreSaberData.ContainsKey(level.levelID))
@@ -496,8 +496,8 @@ namespace SongBrowserPlugin
                 return;
             }
 
-            CustomSongInfo songInfo = _levelIdToCustomLevel[level.levelID].customSongInfo;            
-            Uri customSongUri = new Uri(songInfo.path);
+            CustomLevelInfo songInfo = _levelIdToCustomLevel[level.levelID].levelInfo;            
+            Uri customSongUri = new Uri(songInfo.levelPath);
             Uri pathDiff = customSongDirUri.MakeRelativeUri(customSongUri);
             string relPath = Uri.UnescapeDataString(pathDiff.OriginalString);
             string[] paths = relPath.Split('/');
@@ -520,7 +520,7 @@ namespace SongBrowserPlugin
             {
                 string path = paths[i];                
 
-                if (path == Path.GetFileName(songInfo.path))
+                if (path == Path.GetFileName(songInfo.levelPath))
                 {
                     //_log.Debug("\tLevel Found Adding {0}->{1}", currentNode.Key, level.levelID);
                     currentNode.Levels.Add(level);

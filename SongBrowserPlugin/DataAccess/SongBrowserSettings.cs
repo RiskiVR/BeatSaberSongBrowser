@@ -5,6 +5,7 @@ using System.IO;
 using System.Text;
 using System.Xml;
 using System.Xml.Serialization;
+using LegacyCore.Custom;
 
 
 namespace SongBrowserPlugin.DataAccess
@@ -183,7 +184,7 @@ namespace SongBrowserPlugin.DataAccess
         /// </summary>
         /// <param name="levelIdToCustomLevel"></param>
         /// <param name="levelIdToSongVersion"></param>
-        public void ConvertFavoritesToPlaylist(Dictionary<String, SongLoaderPlugin.OverrideClasses.CustomLevel> levelIdToCustomLevel,
+        public void ConvertFavoritesToPlaylist(Dictionary<String, CustomLevelSO> levelIdToCustomLevel,
                                                Dictionary<string, string> levelIdToSongVersion)
         {
             // Check if we have favorites to convert to the playlist

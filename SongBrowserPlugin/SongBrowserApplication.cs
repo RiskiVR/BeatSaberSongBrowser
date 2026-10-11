@@ -1,11 +1,11 @@
 ﻿using SongBrowserPlugin.DataAccess;
 using SongBrowserPlugin.UI;
-using SongLoaderPlugin;
-using SongLoaderPlugin.OverrideClasses;
 using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using LegacyCore;
+using LegacyCore.Custom;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -30,7 +30,7 @@ namespace SongBrowserPlugin
         /// Load the main song browser app.
         /// </summary>
         internal static void OnLoad()
-        {            
+        {
             if (Instance != null)
             {
                 return;
@@ -79,14 +79,7 @@ namespace SongBrowserPlugin
 
             _songBrowserUI.CreateUI();
 
-            if (SongLoaderPlugin.SongLoader.AreSongsLoaded)
-            {
-                OnSongLoaderLoadedSongs(null, SongLoader.CustomLevels);
-            }
-            else
-            {
-                SongLoader.SongsLoadedEvent += OnSongLoaderLoadedSongs;
-            }
+            Loader.levelsLoadedEvent += OnSongLoaderLoadedSongs;
 
             _songBrowserUI.RefreshSongList();
         }
@@ -96,7 +89,7 @@ namespace SongBrowserPlugin
         /// </summary>
         /// <param name="loader"></param>
         /// <param name="levels"></param>
-        private void OnSongLoaderLoadedSongs(SongLoader loader, List<CustomLevel> levels)
+        private void OnSongLoaderLoadedSongs(Loader loader, List<CustomLevelSO> levels)
         {
             _log.Trace("OnSongLoaderLoadedSongs");
             try
@@ -116,6 +109,7 @@ namespace SongBrowserPlugin
         /// <param name="levels"></param>
         private void OnScoreSaberDataDownloaded()
         {
+            return;
             _log.Trace("OnScoreSaberDataDownloaded");
             try
             {

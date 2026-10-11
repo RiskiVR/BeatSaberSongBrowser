@@ -1,12 +1,12 @@
 ﻿using HMUI;
-using SongLoaderPlugin;
-using SongLoaderPlugin.OverrideClasses;
 using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using LegacyCore;
+using LegacyCore.Custom;
 using TMPro;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -32,7 +32,7 @@ namespace SongBrowserPlugin.UI
         private static readonly Vector2 CanvasSize = new Vector2(200, 50);
 
         private static readonly Vector2 CreditPosition = new Vector2(50, 22);
-        private const string CreditText = "Song Browser Plugin <size=75%>" + Plugin.VERSION_NUMBER + " by Halsafar</size>";
+        private static readonly string CreditText = $"{Plugin.PLUGIN_NAME} <size=75%>{Plugin.VERSION_NUMBER} by {Plugin.PLUGIN_AUTHOR}";
         private const float CreditFontSize = 9f;
         private static readonly Vector2 HeaderPosition = new Vector2(50, 15);
         private static readonly Vector2 HeaderSize = new Vector2(200, 20);
@@ -71,14 +71,14 @@ namespace SongBrowserPlugin.UI
         private void OnEnable()
         {
             SceneManager.activeSceneChanged += SceneManagerOnActiveSceneChanged;
-            SongLoader.SongsLoadedEvent += SongLoaderOnSongsLoadedEvent;
+            Loader.levelsLoadedEvent += SongLoaderOnSongsLoadedEvent;
             SongBrowserModel.didFinishProcessingSongs += SongBrowserFinishedProcessingSongs;
         }
 
         private void OnDisable()
         {
             SceneManager.activeSceneChanged -= SceneManagerOnActiveSceneChanged;
-            SongLoader.SongsLoadedEvent -= SongLoaderOnSongsLoadedEvent;
+            Loader.levelsLoadedEvent -= SongLoaderOnSongsLoadedEvent;
             SongBrowserModel.didFinishProcessingSongs -= SongBrowserFinishedProcessingSongs;
         }
 
@@ -97,7 +97,7 @@ namespace SongBrowserPlugin.UI
             }
         }
 
-        private void SongLoaderOnSongsLoadedEvent(SongLoader arg1, List<CustomLevel> arg2)
+        private void SongLoaderOnSongsLoadedEvent(Loader arg1, List<CustomLevelSO> arg2)
         {
             _showingMessage = false;
             _headerText.text = HeaderText;
@@ -106,7 +106,7 @@ namespace SongBrowserPlugin.UI
             _canvas.enabled = true;
         }
 
-        private void SongBrowserFinishedProcessingSongs(List<CustomLevel> arg2)
+        private void SongBrowserFinishedProcessingSongs(List<CustomLevelSO> arg2)
         {
             _showingMessage = false;
             _headerText.text = arg2.Count + " songs processed.";

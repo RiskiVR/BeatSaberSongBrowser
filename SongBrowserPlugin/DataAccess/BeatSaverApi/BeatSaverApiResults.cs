@@ -1,7 +1,6 @@
 ﻿using System;
+using LegacyCore.Custom;
 using SimpleJSON;
-using SongLoaderPlugin;
-using SongLoaderPlugin.OverrideClasses;
 
 
 // From: https://github.com/andruzzzhka/BeatSaverDownloader
@@ -17,19 +16,20 @@ namespace SongBrowserPlugin.DataAccess.BeatSaverApi
         public string jsonPath;
         public int? offset;
 
+        /*
         public DifficultyLevel(CustomSongInfo.DifficultyLevel difficultyLevel)
         {
             difficulty = difficultyLevel.difficulty;
             difficultyRank = difficultyLevel.difficultyRank;
             jsonPath = difficultyLevel.jsonPath;
         }
+        */
 
-        /*
-        public DifficultyLevel(CustomLevelInfo.DifficultyLevelInfo difficultyLevel)
+        public DifficultyLevel(CustomLevelInfo.DifficultyBeatmap difficultyLevel)
         {
             difficulty = difficultyLevel.difficulty;
             difficultyRank = difficultyLevel.difficultyRank;
-        }*/
+        }
 
         public DifficultyLevel(string Difficulty, int DifficultyRank, string JsonPath, int Offset = 0)
         {
@@ -183,15 +183,16 @@ namespace SongBrowserPlugin.DataAccess.BeatSaverApi
 
 
 
-        public Song(CustomLevel _data)
+        public Song(CustomLevelSO _data)
         {
             songName = _data.songName;
             songSubName = _data.songSubName;
             authorName = _data.songAuthorName;
             difficultyLevels = ConvertDifficultyLevels(_data.difficultyBeatmaps);
-            path = _data.customSongInfo.path;
+            path = _data.levelInfo.levelPath;
         }
 
+        /*
         public Song(CustomSongInfo _song)
         {
 
@@ -201,8 +202,9 @@ namespace SongBrowserPlugin.DataAccess.BeatSaverApi
             difficultyLevels = ConvertDifficultyLevels(_song.difficultyLevels);
             path = _song.path;
         }
+        */
 
-        public DifficultyLevel[] ConvertDifficultyLevels(CustomSongInfo.DifficultyLevel[] _difficultyLevels)
+        public DifficultyLevel[] ConvertDifficultyLevels(CustomLevelInfo.DifficultyBeatmap[] _difficultyLevels)
         {
             if (_difficultyLevels != null && _difficultyLevels.Length > 0)
             {

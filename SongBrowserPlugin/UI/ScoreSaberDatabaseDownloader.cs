@@ -40,6 +40,7 @@ namespace SongBrowserPlugin.UI
         /// </summary>
         public void Start()
         {
+            return; //TODO: ScoreSaber / LegacyBoards?
             _log.Trace("Start()");
 
             StartCoroutine(WaitForDownload());

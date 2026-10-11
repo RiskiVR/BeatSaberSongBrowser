@@ -1,9 +1,9 @@
-﻿using SongLoaderPlugin.OverrideClasses;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using LegacyCore.Custom;
 using UnityEngine;
 
 namespace SongBrowserPlugin.DataAccess.FileSystem
@@ -45,12 +45,12 @@ namespace SongBrowserPlugin.DataAccess.FileSystem
             _levelID = $"Folder_{relativePath}";
 
             var beatmapData = new FolderBeatMapDataSO();
-            var difficultyBeatmaps = new List<CustomLevel.CustomDifficultyBeatmap>();
-            var newDiffBeatmap = new CustomLevel.CustomDifficultyBeatmap(this, LevelDifficulty.Easy, 0, 0, beatmapData);
+            var difficultyBeatmaps = new List<DifficultyBeatmap>();
+            var newDiffBeatmap = new DifficultyBeatmap(this, LevelDifficulty.Easy, 0, 0, beatmapData);
             difficultyBeatmaps.Add(newDiffBeatmap);
 
             var sceneInfo = Resources.Load<SceneInfo>("SceneInfo/" + "DefaultEnvironment" + "SceneInfo");
-            this.InitFull(_levelID, _songName, _songSubName, _songAuthorName, SongLoaderPlugin.SongLoader.TemporaryAudioClip, 1, 1, 1, 1, 1, 1, 1, coverImage, difficultyBeatmaps.ToArray(), sceneInfo);
+            this.InitFull(_levelID, _songName, _songSubName, _songAuthorName, null, 1, 1, 1, 1, 1, 1, 1, coverImage, difficultyBeatmaps.ToArray(), sceneInfo);
             this.InitData();
         }
     }

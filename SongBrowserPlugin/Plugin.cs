@@ -6,17 +6,13 @@ namespace SongBrowserPlugin
 {
     public class Plugin : IPlugin
     {
-        public const string VERSION_NUMBER = "v2.3.4";
+        public const string VERSION_NUMBER = "v2.3.5";
+        public const string PLUGIN_NAME = "Song Browser";
+        public const string PLUGIN_AUTHOR = "Halsafar & RiskiVR";
 
-        public string Name
-        {
-            get { return "Song Browser"; }
-        }
+        public string Name => PLUGIN_NAME;
 
-        public string Version
-        {
-            get { return VERSION_NUMBER; }
-        }
+        public string Version => VERSION_NUMBER;
 
         public void OnApplicationStart()
         {
