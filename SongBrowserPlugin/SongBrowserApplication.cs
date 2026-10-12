@@ -81,6 +81,7 @@ namespace SongBrowserPlugin
 
             Loader.levelsLoadedEvent += OnSongLoaderLoadedSongs;
 
+            _songBrowserUI.UpdateSongList();
             _songBrowserUI.RefreshSongList();
         }
 
